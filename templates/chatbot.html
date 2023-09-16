@@ -4,7 +4,7 @@ Helper Chatbot
 {% endblock %}
 {% block body %}
 <div class="container h-100 d-flex gap-2 flex-column justify-content-center">
-	<h3 class="text-center bg-warning text-white mb-0 p-2 rounded">Hello, I am your helper chatbot buddy! Ask me anything.
+	<h3 class="text-center bg-warning text-white mb-0 p-2 rounded">Helper chatbot!
 	</h3>
 	{% comment %}
 	user name is saved to user.email in Django's auth model
@@ -36,10 +36,15 @@ Helper Chatbot
 			{% endif %}
 			{% endfor %}
 		</div>
-		<form class="d-flex gap-3" id="chatbot-form" method="post" action="/chatbot/">
-			<input class="w-100" type="text" id="chatbot-query" name="query" />
-			<button type="submit">Send</button>
-		</form>
+		<div class="d-flex gap-3">
+			<form class="d-flex w-100 gap-3" id="chatbot-form" method="post" action="/chatbot/">
+				<input class="w-100" type="text" id="chatbot-query" name="query" />
+				<button type="submit">Send</button>
+			</form>
+			<form method="post" id="clear-chat-form" action="/clear_chat/">
+				<button class="text-nowrap" type="submit">Clear Chat</button>
+			</form>
+		</div>
 	</div>
 </div>
 <script type="text/javascript">
@@ -53,7 +58,6 @@ Helper Chatbot
 	});
 
 	const chatbotForm = document.getElementById('chatbot-form');
-
 	chatbotForm.addEventListener('submit', (event) => {
 		event.preventDefault();
 
@@ -97,6 +101,25 @@ Helper Chatbot
 				aiResponse.innerHTML = `<span class="fw-bold">Helper Chatbot:&nbsp;</span><span>${response}</span>`;
 				chatMessages.appendChild(aiResponse);
 				aiResponse.scrollIntoView();
+			});
+	});
+
+	const clearChatForm = document.getElementById('clear-chat-form');
+	clearChatForm.addEventListener('submit', (event) => {
+		event.preventDefault();
+
+		fetch('/clear_chat/', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: new URLSearchParams({
+				'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value
+			})
+		})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					window.location.reload();
+				}
 			});
 	});
 </script>

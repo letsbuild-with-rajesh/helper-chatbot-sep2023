@@ -40,6 +40,15 @@ def chatbot(request):
     else:
         return redirect('/')
 
+def clear_chat(request):
+    if request.user.is_authenticated:
+        chats = Chat.objects.filter(user=request.user)
+        for chat in chats:
+            chat.delete()
+        return JsonResponse({'success': True})
+    else:
+        return redirect('/')
+
 def login(request):
     if request.method == 'POST':
         userid = request.POST['userid']
@@ -52,7 +61,10 @@ def login(request):
             error_message = 'Invalid credentials'
             return render(request, 'login.html', {'error_message': error_message})
     else:
-        return render(request, 'login.html')
+        if request.user.is_authenticated:
+            return redirect('chatbot')
+        else:
+            return render(request, 'login.html')
 
 def signup(request):
     if request.method == 'POST':
