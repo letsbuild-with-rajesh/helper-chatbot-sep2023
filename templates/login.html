@@ -1,0 +1,24 @@
+{% extends "master.html" %}
+{% block title %}
+Login
+{% endblock %}
+{% block body %}
+<form class="w-50 align-self-center" style="min-width: 200px;" method="post">
+	{% csrf_token %}
+	<div class=" form-outline mb-4">
+		<label class="form-label" for="userid">UserId</label>
+		<input type="text" id="userid" name="userid" class="form-control" />
+	</div>
+	<div class="form-outline mb-4">
+		<label class="form-label" for="password">Password</label>
+		<input type="password" id="password" name="password" class="form-control" />
+	</div>
+	<div class="form-outline mb-4 d-flex gap-4 justify-content-center align-items-center">
+		<button class="btn btn-warning text-white" type="submit">Login</button>
+		<span><a href="/signup">Click here</a>&nbsp;to sign up</span>
+	</div>
+	{% if error_message %}
+	<div class="alert alert-danger" role="alert">{{ error_message }}</div>
+	{% endif %}
+</form>
+{% endblock %}

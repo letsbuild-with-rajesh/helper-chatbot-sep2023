@@ -1,0 +1,90 @@
+{% extends "master.html" %}
+{% block title %}
+Helper Chatbot
+{% endblock %}
+{% block body %}
+<div class="container h-100 d-flex gap-2 flex-column justify-content-center">
+	<h3 class="text-center bg-warning text-white mb-0 p-2 rounded">Hello, I am your helper chatbot buddy! Ask me anything.
+	</h3>
+	{% comment %}
+	user name is saved to user.email in Django's auth model
+	{% endcomment %}
+	<div class="card-header bg-warning text-white d-flex align-items-center gap-3 rounded"
+		style="max-width: fit-content;">
+		<div><span>Welcome,</span>&nbsp;<b>{{ user.email }}</b></div>
+		<form method="post" action="/logout/">
+			{% csrf_token %}
+			<button type="submit" class="btn border-white btn-warning text-white bg-danger">Logout</button></a>
+		</form>
+	</div>
+
+	<div class="border border-dark rounded p-3 d-flex flex-column gap-3">
+		<div id="chat-messages" class="border border-dark d-flex flex-column gap-3 p-3">
+			<div class="border border-dark bg-primary text-white rounded p-2" style="width: fit-content;">
+				<span class="fw-bold">Helper Chatbot:&nbsp;</span><span>I'm your helper chatbot. Feel free to ask me
+					anything</span>
+			</div>
+			{% for chat in chats %}
+			{% if chat.user == request.user %}
+			<div class="border border-dark bg-info text-white rounded p-2 align-self-end" style="width: fit-content;">
+				<span class="fw-bold">You:&nbsp;</span><span>{{chat.query}}</span>
+			</div>
+			<div class="border border-dark bg-primary text-white rounded p-2" style="width: fit-content;">
+				<span class="fw-bold">Helper Chatbot:&nbsp;</span><span>{{chat.response}}</span>
+			</div>
+			{% endif %}
+			{% endfor %}
+		</div>
+		<form class="d-flex gap-3" id="chatbot-form" method="post" action="/chatbot/">
+			<input class="w-100" type="text" id="chatbot-query" name="query" />
+			<button type="submit">Send</button>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	const chatbotForm = document.getElementById('chatbot-form');
+
+	chatbotForm.addEventListener('submit', (event) => {
+		event.preventDefault();
+
+		const queryInput = document.getElementById('chatbot-query');
+		const query = queryInput.value.trim();
+		if (!query) return;
+
+		const sentQuery = document.createElement('div');
+		sentQuery.classList.add('border', 'border-dark', 'bg-info', 'text-white', 'rounded', 'p-2', 'align-self-end');
+		sentQuery.style.width = 'fit-content';
+		sentQuery.innerHTML = `<span class="fw-bold">You:&nbsp;</span><span>${query}</span>`;
+
+		const chatMessages = document.getElementById('chat-messages');
+		chatMessages.appendChild(sentQuery);
+
+		const loader = document.createElement('div');
+		loader.classList.add('spinner-border', 'text-warning', 'align-self-center');
+
+		chatMessages.appendChild(loader);
+
+		queryInput.value = '';
+
+		fetch('/chatbot/', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+			body: new URLSearchParams({
+				'csrfmiddlewaretoken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+				'query': query
+			})
+		})
+			.then(response => response.json())
+			.then(data => {
+				const loaders = document.getElementsByClassName('spinner-border');
+				Array.from(loaders).forEach(loader => loader.remove());
+				const response = data.response;
+				const aiResponse = document.createElement('div');
+				aiResponse.classList.add('border', 'border-dark', 'bg-primary', 'text-white', 'rounded', 'p-2');
+				aiResponse.style.width = 'fit-content';
+				aiResponse.innerHTML = `<span class="fw-bold">Helper Chatbot:&nbsp;</span><span>${response}</span>`;
+				chatMessages.appendChild(aiResponse);
+			});
+	});
+</script>
+{% endblock %}
