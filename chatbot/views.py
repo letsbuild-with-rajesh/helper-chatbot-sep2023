@@ -9,15 +9,20 @@ import openai
 
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
-def get_ai_response(query):
-    api_response = openai.ChatCompletion.create(
-        model = "gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are an helpful assistant."},
-            {"role": "user", "content": query},
-        ]
-    )
-    
+def get_ai_response(query, chatHistory):
+    # Default text
+    messages = [{ 'role': 'system', 'content': 'You are an helpful assistant.' }]
+
+    # History of chat
+    for chat in chatHistory:
+        messages.append({ 'role': 'user', 'content': chat.query })
+        messages.append({ 'role': 'assistant', 'content': chat.response })
+
+    # New query
+    messages.append({ 'role': 'user', 'content': query})
+
+    api_response = openai.ChatCompletion.create(model = "gpt-3.5-turbo",messages=messages)
+
     response_message = api_response.choices[0].message.content.strip()
     return response_message
 
@@ -26,7 +31,7 @@ def chatbot(request):
         chats = Chat.objects.filter(user=request.user)
         if request.method == 'POST':
             query = request.POST.get('query')
-            response = get_ai_response(query)
+            response = get_ai_response(query, chats)
 
             chat = Chat(user=request.user, query=query, response=response, created_at=timezone.now())
             chat.save()
@@ -36,7 +41,6 @@ def chatbot(request):
         return redirect('/')
 
 def login(request):
-    print('reacching hee')
     if request.method == 'POST':
         userid = request.POST['userid']
         password = request.POST['password']

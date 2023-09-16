@@ -18,8 +18,9 @@ Helper Chatbot
 		</form>
 	</div>
 
-	<div class="border border-dark rounded p-3 d-flex flex-column gap-3">
-		<div id="chat-messages" class="border border-dark d-flex flex-column gap-3 p-3">
+	<div class="border border-dark rounded p-3 d-flex flex-column gap-3 overflow-auto"
+		style="max-height: calc(100vh - 180px);">
+		<div id="chat-messages" class="border border-dark d-flex flex-column gap-3 overflow-auto p-3">
 			<div class="border border-dark bg-primary text-white rounded p-2" style="width: fit-content;">
 				<span class="fw-bold">Helper Chatbot:&nbsp;</span><span>I'm your helper chatbot. Feel free to ask me
 					anything</span>
@@ -42,6 +43,15 @@ Helper Chatbot
 	</div>
 </div>
 <script type="text/javascript">
+
+	window.addEventListener('load', function () {
+		const chatMessages = document.getElementById('chat-messages');
+		const lastChatMessage = chatMessages.lastElementChild;
+		if (lastChatMessage) {
+			lastChatMessage.scrollIntoView();
+		}
+	});
+
 	const chatbotForm = document.getElementById('chatbot-form');
 
 	chatbotForm.addEventListener('submit', (event) => {
@@ -60,9 +70,11 @@ Helper Chatbot
 		chatMessages.appendChild(sentQuery);
 
 		const loader = document.createElement('div');
-		loader.classList.add('spinner-border', 'text-warning', 'align-self-center');
+		loader.classList.add('loading-spinner', 'align-self-center');
+		loader.innerHTML = `<div class="spinner-border text-warning align-self-center"></div>`
 
 		chatMessages.appendChild(loader);
+		loader.scrollIntoView();
 
 		queryInput.value = '';
 
@@ -76,7 +88,7 @@ Helper Chatbot
 		})
 			.then(response => response.json())
 			.then(data => {
-				const loaders = document.getElementsByClassName('spinner-border');
+				const loaders = document.getElementsByClassName('loading-spinner');
 				Array.from(loaders).forEach(loader => loader.remove());
 				const response = data.response;
 				const aiResponse = document.createElement('div');
@@ -84,6 +96,7 @@ Helper Chatbot
 				aiResponse.style.width = 'fit-content';
 				aiResponse.innerHTML = `<span class="fw-bold">Helper Chatbot:&nbsp;</span><span>${response}</span>`;
 				chatMessages.appendChild(aiResponse);
+				aiResponse.scrollIntoView();
 			});
 	});
 </script>
